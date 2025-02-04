@@ -1,169 +1,71 @@
-﻿namespace CompressionTool
+﻿using CompressionTool.Huffman;
+using CompressionTool.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
+
+class Program
 {
-    public class HuffmanNode
+    static void Main(string[] args)
     {
-        public char Symbol { get; set; }
-        public int Frequency { get; set; }
-        public HuffmanNode Left { get; set; }
-        public HuffmanNode Right { get; set; }
+        InputReader _inputReader = new InputReader();
+        string Input = _inputReader.ReadOriginalFile("DataSet_2");
 
-        public HuffmanNode(char symbol, int frequency)
+        if (string.IsNullOrEmpty(Input))
         {
-            Symbol = symbol;
-            Frequency = frequency;
-            Left = null;
-            Right = null;
+            Console.WriteLine("Error: Input file is empty or not read correctly!");
+            return;
         }
 
-        public HuffmanNode(int frequency)
-        {
-            Frequency = frequency;
-            Left = null;
-            Right = null;
-        }
-    }
+        long originalSize = Encoding.UTF8.GetByteCount(Input);  // original size (in bytes)
 
-    // Huffman Tree class
-    public class HuffmanTree
-    {
-        private HuffmanNode Root { get; set; }
-
-        public HuffmanTree(Dictionary<char, int> frequencies)
+        var frequencies = new Dictionary<char, int>();
+        foreach (var c in Input)
         {
-            BuildTree(frequencies);
+            if (frequencies.ContainsKey(c))
+                frequencies[c]++;
+            else
+                frequencies[c] = 1;
         }
 
-        private void BuildTree(Dictionary<char, int> frequencies)
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        // Build Huffman Tree
+        var huffmanTree = new HuffmanEncoder(frequencies);
+        var huffmanCodes = huffmanTree.GetCodes();
+
+        if (huffmanCodes.Count == 0)
         {
-            var priorityQueue = new PriorityQueue<HuffmanNode>();
-
-            // Create a leaf node for each symbol and add it to the priority queue
-            foreach (var symbol in frequencies)
-            {
-                priorityQueue.Enqueue(new HuffmanNode(symbol.Key, symbol.Value), symbol.Value);
-            }
-
-            // Build the Huffman tree
-            while (priorityQueue.Count > 1)
-            {
-                var left = priorityQueue.Dequeue();
-                var right = priorityQueue.Dequeue();
-
-                var parent = new HuffmanNode(left.Frequency + right.Frequency)
-                {
-                    Left = left,
-                    Right = right
-                };
-
-                priorityQueue.Enqueue(parent, parent.Frequency);
-            }
-
-            Root = priorityQueue.Dequeue();
+            Console.WriteLine("Error: Huffman codes were not generated!");
+            return;
         }
 
-        public Dictionary<char, string> GetCodes()
+        // Encode the input string efficiently
+        StringBuilder encodedString = new StringBuilder();
+        foreach (var c in Input)
         {
-            var codes = new Dictionary<char, string>();
-            Traverse(Root, "", codes);
-            return codes;
+            encodedString.Append(huffmanCodes[c]);
         }
 
-        private void Traverse(HuffmanNode node, string code, Dictionary<char, string> codes)
+        stopwatch.Stop();
+
+        long compressedSizeBits = encodedString.Length;
+        long compressedSizeBytes = (compressedSizeBits + 7) / 8; // Convert bits to bytes
+
+        Console.WriteLine("Huffman Codes:");
+        foreach (var code in huffmanCodes)
         {
-            if (node == null) return;
-
-            if (node.Left == null && node.Right == null)
-            {
-                codes[node.Symbol] = code;
-                return;
-            }
-
-            Traverse(node.Left, code + "0", codes);
-            Traverse(node.Right, code + "1", codes);
-        }
-    }
-
-    // Priority Queue implementation for Huffman Nodes
-    public class PriorityQueue<T>
-    {
-        private SortedDictionary<int, Queue<T>> _dictionary = new SortedDictionary<int, Queue<T>>();
-
-        public int Count { get; private set; }
-
-        public void Enqueue(T item, int priority)
-        {
-            if (!_dictionary.ContainsKey(priority))
-            {
-                _dictionary[priority] = new Queue<T>();
-            }
-
-            _dictionary[priority].Enqueue(item);
-            Count++;
+            Console.WriteLine($"{code.Key} : {code.Value}");
         }
 
-        public T Dequeue()
-        {
-            if (Count == 0)
-            {
-                throw new InvalidOperationException("Queue is empty");
-            }
+        Console.WriteLine("\nFirst 100 encoded bits:");
+        Console.WriteLine(encodedString.Length > 100 ? encodedString.ToString().Substring(0, 100) : encodedString.ToString());
 
-            var first = _dictionary.First();
-            var item = first.Value.Dequeue();
-
-            if (first.Value.Count == 0)
-            {
-                _dictionary.Remove(first.Key);
-            }
-
-            Count--;
-            return item;
-        }
-    }
-
-    // Main program
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            string input = "Huffman coding is a data compression algorithm.";
-
-            // Calculate frequency of each character
-            var frequencies = new Dictionary<char, int>();
-            foreach (var c in input)
-            {
-                if (frequencies.ContainsKey(c))
-                {
-                    frequencies[c]++;
-                }
-                else
-                {
-                    frequencies[c] = 1;
-                }
-            }
-
-            // Build Huffman Tree
-            var huffmanTree = new HuffmanTree(frequencies);
-
-            // Get Huffman Codes
-            var huffmanCodes = huffmanTree.GetCodes();
-
-            // Display Huffman Codes
-            Console.WriteLine("Huffman Codes:");
-            foreach (var code in huffmanCodes)
-            {
-                Console.WriteLine($"{code.Key} : {code.Value}");
-            }
-
-            // Encode the input string
-            string encodedString = "";
-            foreach (var c in input)
-            {
-                encodedString += huffmanCodes[c];
-            }
-
-            Console.WriteLine("\nEncoded String:");
-            Console.WriteLine(encodedString);
-        }
+        Console.WriteLine("\nCompression Statistics:");
+        Console.WriteLine($"Original Size      : {originalSize} bytes");
+        Console.WriteLine($"Compressed Size    : {compressedSizeBytes} bytes");
+        Console.WriteLine($"Compression Ratio  : {(double)compressedSizeBytes / originalSize:P2}");
+        Console.WriteLine($"Compression Time   : {stopwatch.ElapsedMilliseconds} ms");
     }
 }

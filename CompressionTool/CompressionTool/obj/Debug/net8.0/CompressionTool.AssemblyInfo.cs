@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CompressionTool")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+165ac405af06c22e1c24b1f919aec0aff91ca5d0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cb7223b10f5fcfa9180511228a284ac861fc2449")]
 [assembly: System.Reflection.AssemblyProductAttribute("CompressionTool")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CompressionTool")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
