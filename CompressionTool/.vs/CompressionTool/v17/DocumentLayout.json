@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "D:\\Projects\\CopressionTool\\CompressionTool\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{4E4C0E9E-64D1-45D9-8ECF-0A40CB992508}|CompressionTool\\CompressionTool.csproj|d:\\projects\\copressiontool\\compressiontool\\compressiontool\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{4E4C0E9E-64D1-45D9-8ECF-0A40CB992508}|CompressionTool\\CompressionTool.csproj|solutionrelative:compressiontool\\.gitignore||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{4E4C0E9E-64D1-45D9-8ECF-0A40CB992508}|CompressionTool\\CompressionTool.csproj|d:\\projects\\copressiontool\\compressiontool\\compressiontool\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{4E4C0E9E-64D1-45D9-8ECF-0A40CB992508}|CompressionTool\\CompressionTool.csproj|solutionrelative:compressiontool\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -30,11 +34,24 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 0,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
+              "Title": ".gitignore",
+              "DocumentMoniker": "D:\\Projects\\CopressionTool\\CompressionTool\\CompressionTool\\.gitignore",
+              "RelativeDocumentMoniker": "CompressionTool\\.gitignore",
+              "ToolTip": "D:\\Projects\\CopressionTool\\CompressionTool\\CompressionTool\\.gitignore",
+              "RelativeToolTip": "CompressionTool\\.gitignore",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAEAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-02-04T23:01:11.57Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "TextToByteConverter.cs",
               "DocumentMoniker": "D:\\Projects\\CopressionTool\\CompressionTool\\CompressionTool\\Utilities\\TextToByteConverter.cs",
               "RelativeDocumentMoniker": "CompressionTool\\Utilities\\TextToByteConverter.cs",
@@ -42,12 +59,11 @@
               "RelativeToolTip": "CompressionTool\\Utilities\\TextToByteConverter.cs",
               "ViewState": "AgIAABoAAAAAAAAAAAAAwCAAAAAeAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-04T17:17:54.537Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-04T17:17:54.537Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "InputReader.cs",
               "DocumentMoniker": "D:\\Projects\\CopressionTool\\CompressionTool\\CompressionTool\\Utilities\\InputReader.cs",
               "RelativeDocumentMoniker": "CompressionTool\\Utilities\\InputReader.cs",
@@ -55,12 +71,11 @@
               "RelativeToolTip": "CompressionTool\\Utilities\\InputReader.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAwAAABFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-04T16:26:36.144Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-04T16:26:36.144Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "HuffmanEncoder.cs",
               "DocumentMoniker": "D:\\Projects\\CopressionTool\\CompressionTool\\CompressionTool\\Huffman\\HuffmanEncoder.cs",
               "RelativeDocumentMoniker": "CompressionTool\\Huffman\\HuffmanEncoder.cs",
@@ -68,12 +83,11 @@
               "RelativeToolTip": "CompressionTool\\Huffman\\HuffmanEncoder.cs",
               "ViewState": "AgIAACIAAAAAAAAAAAAcwC0AAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-04T14:33:01.272Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-04T14:33:01.272Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "HuffmanNode.cs",
               "DocumentMoniker": "D:\\Projects\\CopressionTool\\CompressionTool\\CompressionTool\\Huffman\\HuffmanNode.cs",
               "RelativeDocumentMoniker": "CompressionTool\\Huffman\\HuffmanNode.cs",
@@ -81,12 +95,11 @@
               "RelativeToolTip": "CompressionTool\\Huffman\\HuffmanNode.cs",
               "ViewState": "AgIAAA0AAAAAAAAAAAAAAA0AAAAtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-02-04T14:31:49.155Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-02-04T14:31:49.155Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\Projects\\CopressionTool\\CompressionTool\\CompressionTool\\Program.cs",
               "RelativeDocumentMoniker": "CompressionTool\\Program.cs",

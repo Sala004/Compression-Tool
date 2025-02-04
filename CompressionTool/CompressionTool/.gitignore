@@ -1,0 +1,6 @@
+﻿# Ignore Visual Studio workspace files
+.vs/
+
+# Ignore build and object directories
+bin/
+obj/
