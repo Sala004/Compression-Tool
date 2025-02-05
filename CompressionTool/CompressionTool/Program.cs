@@ -9,8 +9,9 @@ class Program
 {
     static void Main(string[] args)
     {
+        Console.OutputEncoding = System.Text.Encoding.UTF8;
         InputReader _inputReader = new InputReader();
-        string Input = _inputReader.ReadOriginalFile("DataSet_2");
+        string Input = _inputReader.ReadOriginalFile("DataSet_1");
 
         if (string.IsNullOrEmpty(Input))
         {
@@ -33,19 +34,25 @@ class Program
 
         // Build Huffman Tree
         var huffmanTree = new HuffmanEncoder(frequencies);
-        var huffmanCodes = huffmanTree.GetCodes();
+        var canonicalHuffmanCodes = huffmanTree.GetCanonicalCodes();
 
-        if (huffmanCodes.Count == 0)
+        if (canonicalHuffmanCodes.Count == 0)
         {
             Console.WriteLine("Error: Huffman codes were not generated!");
             return;
+        }
+
+        Console.WriteLine("\nCanonical Huffman Codes:");
+        foreach (var code in canonicalHuffmanCodes)
+        {
+            Console.WriteLine($"{code.Key} : {code.Value}");
         }
 
         // Encode the input string efficiently
         StringBuilder encodedString = new StringBuilder();
         foreach (var c in Input)
         {
-            encodedString.Append(huffmanCodes[c]);
+            encodedString.Append(canonicalHuffmanCodes[c]);
         }
 
         stopwatch.Stop();
@@ -53,19 +60,13 @@ class Program
         long compressedSizeBits = encodedString.Length;
         long compressedSizeBytes = (compressedSizeBits + 7) / 8; // Convert bits to bytes
 
-        Console.WriteLine("Huffman Codes:");
-        foreach (var code in huffmanCodes)
-        {
-            Console.WriteLine($"{code.Key} : {code.Value}");
-        }
-
         Console.WriteLine("\nFirst 100 encoded bits:");
         Console.WriteLine(encodedString.Length > 100 ? encodedString.ToString().Substring(0, 100) : encodedString.ToString());
 
         Console.WriteLine("\nCompression Statistics:");
         Console.WriteLine($"Original Size      : {originalSize} bytes");
         Console.WriteLine($"Compressed Size    : {compressedSizeBytes} bytes");
-        Console.WriteLine($"Compression Ratio  : {(double)compressedSizeBytes / originalSize:P2}");
+        Console.WriteLine($"Compression Ratio  : {(1 - (double)compressedSizeBytes / originalSize):P2}");
         Console.WriteLine($"Compression Time   : {stopwatch.ElapsedMilliseconds} ms");
     }
 }
