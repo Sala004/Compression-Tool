@@ -1,23 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-class LZSSEncoder
+class LZSSCompressor
 {
-    public List<byte> LZSSCompress(string inputText, out List<byte> literals, out List<byte> matchLengths, out List<ushort> backwardDistances)
+    // Public property to store the character to byte mapping
+    public Dictionary<char, byte> CharToByteMap { get; private set; }
+
+    public List<byte> LZSSCompress(string inputText)
     {
+        // Create the character mapping before converting the text to a byte stream
+        CharToByteMap = CreateCharacterMapping(inputText);
         List<byte> byteStream = ConvertTextToByteStream(inputText);
-        return CompressWithLZ77(byteStream, out literals, out matchLengths, out backwardDistances);
+        return CompressWithLZ77(byteStream);
     }
 
     private List<byte> ConvertTextToByteStream(string fileContent)
     {
-        Dictionary<char, byte> charToByteMap = CreateCharacterMapping(fileContent);
         List<byte> byteStream = new List<byte>();
         foreach (char C in fileContent)
         {
-            byteStream.Add(charToByteMap[C]);
+            byteStream.Add(CharToByteMap[C]);
         }
         return byteStream;
     }
@@ -37,17 +40,13 @@ class LZSSEncoder
         return charToByte;
     }
 
-    private List<byte> CompressWithLZ77(List<byte> input, out List<byte> literals, out List<byte> matchLengths, out List<ushort> backwardDistances)
+    private List<byte> CompressWithLZ77(List<byte> input)
     {
         const int SearchBufferSize = 512 * 1024;
         const int LookaheadBufferSize = 259;
         const int MinMatchLength = 4;
 
         List<bool> bitStream = new List<bool>();
-        literals = new List<byte>();
-        matchLengths = new List<byte>();
-        backwardDistances = new List<ushort>();
-
         int inputLength = input.Count;
         int currentIndex = 0;
         Dictionary<string, List<int>> substringTable = new Dictionary<string, List<int>>();
@@ -86,21 +85,12 @@ class LZSSEncoder
                 bitStream.Add(true);
                 AddBits(bitStream, bestMatchDistance, 19);
                 AddBits(bitStream, maxMatchLength - MinMatchLength, 8);
-
-                // Store match details
-                backwardDistances.Add((ushort)bestMatchDistance);
-                matchLengths.Add((byte)(maxMatchLength - MinMatchLength));
-
                 currentIndex += maxMatchLength;
             }
             else
             {
                 bitStream.Add(false);
                 AddBits(bitStream, input[currentIndex], 8);
-
-                // Store literal
-                literals.Add(input[currentIndex]);
-
                 currentIndex++;
             }
 
@@ -118,7 +108,7 @@ class LZSSEncoder
         return ConvertBitStreamToBytes(bitStream);
     }
 
-private void AddBits(List<bool> bitStream, int value, int numBits)
+    private void AddBits(List<bool> bitStream, int value, int numBits)
     {
         for (int i = numBits - 1; i >= 0; i--)
         {
