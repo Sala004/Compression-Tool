@@ -9,12 +9,12 @@ namespace CompressionTool.Huffman
     internal class HuffmanNode
     {
 
-        public char Symbol { get; set; }
+        public byte Symbol { get; set; }
         public int Frequency { get; set; }
         public HuffmanNode Left { get; set; }
         public HuffmanNode Right { get; set; }
 
-        public HuffmanNode(char symbol, int frequency)
+        public HuffmanNode(byte symbol, int frequency)
         {
             Symbol = symbol;
             Frequency = frequency;
