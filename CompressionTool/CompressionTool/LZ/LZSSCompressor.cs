@@ -1,17 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 class LZSSCompressor
 {
     // Public property to store the character to byte mapping
     public Dictionary<char, byte> CharToByteMap { get; private set; }
 
+
     public List<byte> LZSSCompress(string inputText)
     {
         // Create the character mapping before converting the text to a byte stream
         CharToByteMap = CreateCharacterMapping(inputText);
         List<byte> byteStream = ConvertTextToByteStream(inputText);
+
+        #region TestTheMaping
+        //Console.WriteLine("\nCharToByteMap : ");
+        //foreach(var C in CharToByteMap)
+        //{
+        //    Console.WriteLine($"Char :{C.Key},Byte {C.Value}");
+
+        //}
+        //Console.WriteLine("\nByteStream : ");
+        //foreach(var B in byteStream)
+        //{
+        //    Console.Write(B);
+
+        //}
+        //Console.WriteLine();
+        #endregion
+
         return CompressWithLZ77(byteStream);
     }
 
@@ -56,10 +75,30 @@ class LZSSCompressor
             int maxMatchLength = 0;
             int bestMatchDistance = 0;
 
-            if (currentIndex >= MinMatchLength)
-            {
-                string keyString = GetSubstringKey(input, currentIndex, MinMatchLength);
-                if (substringTable.ContainsKey(keyString))
+                string keyString=null;
+                
+               keyString = GetSubstringKey(input, currentIndex, MinMatchLength);
+
+            #region //test SubStringTable
+            //Console.WriteLine("\nCurrent index : " + currentIndex);
+            //    Console.WriteLine("\nkeyString : " + keyString);
+
+            //    Console.WriteLine("\nSubStringTable : " );
+            //    foreach(var D in substringTable)
+            //    {
+            //        Console.Write(D.Key + " : ");
+
+            //            foreach(int x in D.Value)
+            //    {
+            //        Console.Write(x);
+            //    }
+            //    Console.WriteLine();
+
+            //    }
+            #endregion
+
+
+            if (!string.IsNullOrEmpty(keyString) && substringTable.ContainsKey(keyString))
                 {
                     foreach (int startIndex in substringTable[keyString])
                     {
@@ -78,32 +117,73 @@ class LZSSCompressor
                         }
                     }
                 }
+            
+            if (!string.IsNullOrEmpty(keyString) && !substringTable.ContainsKey(keyString))
+            {
+                substringTable[keyString] = new List<int>();
+                substringTable[keyString].Add(currentIndex);
+                       
             }
-
+            
             if (maxMatchLength >= MinMatchLength)
             {
+                //Console.WriteLine($"find : {bestMatchDistance},{maxMatchLength}");
                 bitStream.Add(true);
-                AddBits(bitStream, bestMatchDistance, 19);
-                AddBits(bitStream, maxMatchLength - MinMatchLength, 8);
+                AddBits(bitStream, bestMatchDistance - 1, 19);
+                AddBits(bitStream, maxMatchLength - 4, 8);
                 currentIndex += maxMatchLength;
             }
             else
             {
+                //Console.WriteLine("can't find : "+input[currentIndex]);
                 bitStream.Add(false);
                 AddBits(bitStream, input[currentIndex], 8);
                 currentIndex++;
             }
 
-            if (currentIndex >= MinMatchLength)
-            {
-                string keyString = GetSubstringKey(input, currentIndex - MinMatchLength, MinMatchLength);
-                if (!substringTable.ContainsKey(keyString))
-                {
-                    substringTable[keyString] = new List<int>();
-                }
-                substringTable[keyString].Add(currentIndex - MinMatchLength);
-            }
+           
+
         }
+        #region //test bitStream
+        //    Console.WriteLine("\nbitStream.Count : " + bitStream.Count);
+        //    Console.WriteLine("bitStream : ");
+
+        //    // Iterate over the bitStream to print in the required format
+        //for (int i = 0; i < bitStream.Count;)
+        //{
+        //    if (bitStream[i]) // If match found (1)
+        //    {
+        //        Console.Write("1 ");
+        //        i++;
+
+        //        // Print the next 19-bit value (distance)
+        //        for (int j = 0; j < 19 && i < bitStream.Count; j++, i++)
+        //        {
+        //            Console.Write(bitStream[i] ? "1" : "0");
+        //        }
+        //        Console.Write(" ");
+
+        //        // Print the next 8-bit value (match length)
+        //        for (int j = 0; j < 8 && i < bitStream.Count; j++, i++)
+        //        {
+        //            Console.Write(bitStream[i] ? "1" : "0");
+        //        }
+        //    }
+        //    else // If match not found (0)
+        //    {
+        //        Console.Write("0 ");
+        //        i++;
+
+        //        // Print the next 8-bit value (raw character)
+        //        for (int j = 0; j < 8 && i < bitStream.Count; j++, i++)
+        //        {
+        //            Console.Write(bitStream[i] ? "1" : "0");
+        //        }
+        //    }
+        //    Console.WriteLine(); // New line for each entry
+        //}
+        #endregion
+
 
         return ConvertBitStreamToBytes(bitStream);
     }
@@ -117,14 +197,26 @@ class LZSSCompressor
     }
 
     private string GetSubstringKey(List<byte> data, int startIndex, int length)
+{
+    if (data == null || startIndex < 0 || length < 0 || startIndex + length > data.Count)
+        return null;
+
+    StringBuilder result = new StringBuilder();
+    for (int i = startIndex; i < startIndex + length; i++)
     {
-        return string.Join("", data.Skip(startIndex).Take(length).Select(b => b.ToString()));
+        result.Append(data[i].ToString());
     }
+
+    return result.ToString();
+}
+
 
     private List<byte> ConvertBitStreamToBytes(List<bool> bitStream)
     {
         int padding = (8 - (bitStream.Count % 8)) % 8;
-        List<byte> output = new List<byte> { (byte)padding };
+        List<byte> byteStream = new List<byte> { (byte)padding };
+
+
 
         for (int i = 0; i < bitStream.Count; i += 8)
         {
@@ -136,9 +228,17 @@ class LZSSCompressor
                     b |= (byte)(1 << (7 - j));
                 }
             }
-            output.Add(b);
+            byteStream.Add(b);
         }
-
-        return output;
+        #region testbyteStream
+        //Console.WriteLine("byteStream.Count : " + byteStream.Count);
+        //Console.Write("btyeStream : " );
+        //foreach(byte B in byteStream)
+        //{
+        //    Console.Write(B + ",");
+        //}
+        //Console.WriteLine();
+        #endregion
+        return byteStream;
     }
 }
