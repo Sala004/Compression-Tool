@@ -6,81 +6,84 @@ using System.Threading.Tasks;
 
 namespace CompressionTool.Utilities
 {
-    public static class StreamMerger
+       /// <summary>
+    /// The merger takes the separate streams (plus the token–flags and the original padding–bits count)
+    /// and reassembles the original compressed byte stream.
+    /// </summary>
+    public class StreamMerger
     {
         /// <summary>
-        /// Given the lists produced by StreamExtractor (including the flag list),
-        /// this method reconstructs the original compressed byte stream.
+        /// Merges the three streams (and the token order) into the original compressed stream.
         /// </summary>
-        /// <param name="flags">List of booleans indicating the type of each code (false = literal, true = match).</param>
-        /// <param name="literals">List of literal bytes (for codes with flag = 0).</param>
-        /// <param name="matchLengths">List of match lengths (for codes with flag = 1).</param>
-        /// <param name="backwardDistances">List of backward distances (for codes with flag = 1), each stored as a List<byte>.</param>
-        /// <returns>The merged (reconstructed) compressed stream as a list of bytes.</returns>
-        public static List<byte> MergeStreams(List<bool> flags, List<byte> literals, List<byte> matchLengths, List<List<byte>> backwardDistances)
+        /// <param name="paddingBits">
+        /// The padding bits count (the first byte of the original stream).
+        /// </param>
+        /// <param name="flags">
+        /// The token order: false = literal token; true = match token.
+        /// </param>
+        /// <param name="literals">
+        /// The literal bytes (one byte per literal token).
+        /// </param>
+        /// <param name="matchLengths">
+        /// The match lengths (one byte per match token).
+        /// </param>
+        /// <param name="backwardDistances">
+        /// The backward distances (three bytes per match token, big-endian; only 19 bits used).
+        /// </param>
+        /// <returns>The reconstructed compressed byte stream.</returns>
+        public static List<byte> MergeStreams(
+            byte paddingBits,
+            List<bool> flags,
+            List<byte> literals,
+            List<byte> matchLengths,
+            List<byte> backwardDistances)
         {
-            if (flags == null)
-                throw new ArgumentNullException(nameof(flags));
-            if (literals == null || matchLengths == null || backwardDistances == null)
-                throw new ArgumentNullException("None of the input streams can be null.");
-
+            BitWriter writer = new BitWriter();
             int literalIndex = 0;
-            int matchIndex = 0;
-            List<bool> bitStream = new List<bool>();
+            int matchLengthIndex = 0;
+            int backwardDistanceIndex = 0;
 
+            // Process tokens in the same order they were extracted.
             foreach (bool flag in flags)
             {
                 if (!flag)
                 {
-                    bitStream.Add(false);
+                    // Literal token: write flag 0 and then 8 bits for the literal.
+                    writer.WriteBit(0);
                     if (literalIndex >= literals.Count)
-                        throw new InvalidOperationException("Not enough literal values.");
-                    byte literal = literals[literalIndex++];
-                    for (int i = 7; i >= 0; i--)
-                        bitStream.Add(((literal >> i) & 1) == 1);
+                        throw new Exception("Not enough literal bytes to merge.");
+                    writer.WriteBits(literals[literalIndex], 8);
+                    literalIndex++;
                 }
                 else
                 {
-                    bitStream.Add(true);
-                    if (matchIndex >= matchLengths.Count || matchIndex >= backwardDistances.Count)
-                        throw new InvalidOperationException("Not enough match values.");
-
-                    // Reconstruct the 19-bit backward distance from 3 bytes.
-                    List<byte> backwardBytes = backwardDistances[matchIndex];
-                    if (backwardBytes == null || backwardBytes.Count != 3)
-                        throw new InvalidOperationException("Invalid backward distance representation. Expected 3 bytes.");
-
-                    int backward = (backwardBytes[0] << 16) | (backwardBytes[1] << 8) | backwardBytes[2];
-
-                    byte matchLen = matchLengths[matchIndex];
-                    matchIndex++;
-
-                    for (int i = 18; i >= 0; i--)
-                        bitStream.Add(((backward >> i) & 1) == 1);
-                    for (int i = 7; i >= 0; i--)
-                        bitStream.Add(((matchLen >> i) & 1) == 1);
+                    // Match token: write flag 1, then 19 bits (backward distance) and 8 bits (match length).
+                    writer.WriteBit(1);
+                    if (backwardDistanceIndex + 3 > backwardDistances.Count)
+                        throw new Exception("Not enough backward distance bytes to merge.");
+                    // Reassemble the 19–bit integer from its three bytes.
+                    int bd = (backwardDistances[backwardDistanceIndex] << 16)
+                           | (backwardDistances[backwardDistanceIndex + 1] << 8)
+                           | (backwardDistances[backwardDistanceIndex + 2]);
+                    backwardDistanceIndex += 3;
+                    // Ensure only the lower 19 bits are written.
+                    bd = bd & 0x7FFFF; // 0x7FFFF == 524287 → 19 ones in binary.
+                    writer.WriteBits(bd, 19);
+                    if (matchLengthIndex >= matchLengths.Count)
+                        throw new Exception("Not enough match length bytes to merge.");
+                    writer.WriteBits(matchLengths[matchLengthIndex], 8);
+                    matchLengthIndex++;
                 }
             }
 
-            int paddingBits = (8 - (bitStream.Count % 8)) % 8;
-            for (int i = 0; i < paddingBits; i++)
-                bitStream.Add(false);
+            // Get the data bytes from the BitWriter.
+            List<byte> dataBytes = writer.GetBytes();
 
-            List<byte> outputBytes = new List<byte>();
-            outputBytes.Add((byte)paddingBits);
-
-            for (int i = 0; i < bitStream.Count; i += 8)
-            {
-                byte b = 0;
-                for (int j = 0; j < 8; j++)
-                {
-                    if (bitStream[i + j])
-                        b |= (byte)(1 << (7 - j));
-                }
-                outputBytes.Add(b);
-            }
-
-            return outputBytes;
+            // The original compressed stream begins with the padding bits count.
+            List<byte> mergedStream = new List<byte> { paddingBits };
+            mergedStream.AddRange(dataBytes);
+            return mergedStream;
         }
     }
 }
+

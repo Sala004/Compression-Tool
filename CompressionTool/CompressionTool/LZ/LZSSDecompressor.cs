@@ -78,7 +78,7 @@ public class LZSSDecompressor
                 for (int i = 0; i < matchLength; i++)
                 {
                     // For overlapping matches, new bytes are immediately available.
-                    byte value = decompressedBytes[copyPosition + i];
+                byte value = decompressedBytes[copyPosition + i];
                     decompressedBytes.Add(value);
                 }
             }
