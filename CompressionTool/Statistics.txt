@@ -1,0 +1,47 @@
+DataSet_1
+
+Original File Size: 1843146 bytes
+LZSS Compressed Size: 758553 bytes
+Huffman Compression Size: 608801
+Compression ratio: 66.97%
+Time: 0.62s
+
+-------------------------------------------------------------
+
+DataSet_2
+
+Original File Size: 1760617 bytes
+LZSS Compressed Size: 728389 bytes
+Huffman Compression Size: 588538
+Compression ratio: 66.57%
+Time: 0.66s
+
+--------------------------------------------------------------
+
+DataSet_3
+
+Original File Size: 1994961 bytes
+LZSS Compressed Size: 815826 bytes
+Huffman Compression Size: 662188
+Compression ratio: 66.81%
+Time: 0.71s
+
+--------------------------------------------------------------
+
+DataSet_4
+
+Original File Size: 2172789 bytes
+LZSS Compressed Size: 905342 bytes
+Huffman Compression Size: 729716
+Compression ratio: 66.42%
+Time: 0.84s
+
+---------------------------------------------------------------
+
+DataSet_5
+
+Original File Size: 1926499 bytes
+LZSS Compressed Size: 818946 bytes
+Huffman Compression Size: 658487
+Compression ratio: 65.82%
+Time: 0.75s

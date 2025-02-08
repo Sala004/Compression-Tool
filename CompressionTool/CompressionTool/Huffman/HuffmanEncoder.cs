@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace CompressionTool.Huffman
 {
@@ -8,47 +9,33 @@ namespace CompressionTool.Huffman
     {
         private HuffmanNode Root { get; set; }
         public Dictionary<byte, int> CodeLengths { get; private set; } = new Dictionary<byte, int>();
-        private Dictionary<byte, string> EncodingDictionary = new Dictionary<byte, string>();
-        private Dictionary<byte, string> CanonicalCodes = new Dictionary<byte, string>();
+        private readonly Dictionary<byte, string> _encodingDictionary = new();
+        private readonly Dictionary<byte, string> _canonicalCodes = new();
 
         public HuffmanEncoder(Dictionary<byte, int> frequencies)
         {
             BuildTree(frequencies);
         }
 
-        // Returns the header that can be used by the decoder
         public List<byte> GetHeader()
         {
-            var header = new List<byte>();
-
-            foreach (var symbol in CodeLengths)
-            {
-                header.Add(symbol.Key);            // The symbol (byte)
-                header.Add((byte)symbol.Value);    // The code length (byte)
-            }
-
-            return header;
+            return CodeLengths.Select(symbol => new List<byte> { symbol.Key, (byte)symbol.Value }).SelectMany(x => x).ToList();
         }
 
         private void BuildTree(Dictionary<byte, int> frequencies)
         {
             var priorityQueue = new PriorityQueue<HuffmanNode, int>();
 
-            // If no frequencies are provided, create a default tree with a single node
             if (frequencies.Count == 0)
             {
-                Root = new HuffmanNode(0, 1); // Default symbol (0) with frequency 1
-                CodeLengths[0] = 1; // Assign a default bit length
+                Root = new HuffmanNode(0, 1);
+                CodeLengths[0] = 1;
                 return;
             }
 
-            // Create a leaf node for each symbol (byte) and add it to the priority queue
             foreach (var symbol in frequencies)
-            {
                 priorityQueue.Enqueue(new HuffmanNode(symbol.Key, symbol.Value), symbol.Value);
-            }
 
-            // Build the Huffman tree
             while (priorityQueue.Count > 1)
             {
                 var left = priorityQueue.Dequeue();
@@ -66,81 +53,99 @@ namespace CompressionTool.Huffman
             Root = priorityQueue.Dequeue();
         }
 
-
-        // Step 1: Get Normal Huffman Codes
         public Dictionary<byte, string> GetCodes()
         {
             var codes = new Dictionary<byte, string>();
-            Traverse(Root, "", codes);
+            TraverseTree(Root, "", codes);
             return codes;
         }
 
-        private void Traverse(HuffmanNode node, string code, Dictionary<byte, string> codes)
+        private void TraverseTree(HuffmanNode node, string code, Dictionary<byte, string> codes)
         {
             if (node == null) return;
 
-            if (node.Left == null && node.Right == null) // Leaf node
+            if (node.Left == null && node.Right == null)
             {
-                string finalCode = code.Length > 0 ? code : "0";  // Ensure at least one bit
-                codes[node.Symbol] = finalCode;
-                CodeLengths[node.Symbol] = finalCode.Length;  // Store the correct length
+                codes[node.Symbol] = string.IsNullOrEmpty(code) ? "0" : code;
+                CodeLengths[node.Symbol] = codes[node.Symbol].Length;
                 return;
             }
 
-            Traverse(node.Left, code + "0", codes);
-            Traverse(node.Right, code + "1", codes);
+            TraverseTree(node.Left, code + "0", codes);
+            TraverseTree(node.Right, code + "1", codes);
         }
 
-        // Step 2: Generate Canonical Huffman Codes
         public Dictionary<byte, string> GetCanonicalCodes()
         {
-            Traverse(Root, "", EncodingDictionary);
+            TraverseTree(Root, "", _encodingDictionary);
+            return GenerateCanonicalCodes();
+        }
 
-            // Sort symbols by code length first, then by value
-            var sortedSymbols = EncodingDictionary
+        private Dictionary<byte, string> GenerateCanonicalCodes()
+        {
+            var sortedSymbols = _encodingDictionary
                 .OrderBy(entry => entry.Value.Length)
                 .ThenBy(entry => entry.Key)
-                .ToDictionary(pair => pair.Key, pair => pair.Value);
+                .ToList();
 
-            string currentCode = "";
-            bool isFirstSymbol = true;
+            string currentCode = new string('0', sortedSymbols.First().Value.Length);
 
-            foreach (var entry in sortedSymbols)
+            for (int i = 0; i < sortedSymbols.Count; i++)
             {
-                if (isFirstSymbol)
-                {
-                    // Initialize the first code with all zeros based on its length
-                    currentCode = new string('0', entry.Value.Length);
-                    isFirstSymbol = false;
-                }
-                else
-                {
-                    int previousLength = currentCode.Length;
+                var (symbol, _) = sortedSymbols[i];
 
-                    // Convert current code to integer, increment by 1
+                if (i > 0)
+                {
                     long nextCodeValue = Convert.ToInt64(currentCode, 2) + 1;
-                    currentCode = Convert.ToString(nextCodeValue, 2);
+                    currentCode = Convert.ToString(nextCodeValue, 2).PadLeft(currentCode.Length, '0');
 
-                    // Ensure the new code maintains the correct length
-                    if (currentCode.Length < previousLength)
-                    {
-                        int paddingLength = previousLength - currentCode.Length;
-                        currentCode = new string('0', paddingLength) + currentCode;
-                    }
-
-                    // Extend code length if needed
-                    int extraBits = entry.Value.Length - currentCode.Length;
-                    if (extraBits > 0)
-                    {
-                        currentCode += new string('0', extraBits);
-                    }
+                    int requiredLength = sortedSymbols[i].Value.Length;
+                    if (currentCode.Length < requiredLength)
+                        currentCode = currentCode.PadRight(requiredLength, '0');
                 }
 
-                // Store the canonical code
-                CanonicalCodes[entry.Key] = currentCode;
+                _canonicalCodes[symbol] = currentCode;
             }
 
-            return CanonicalCodes;
+            return _canonicalCodes;
+        }
+
+        public static (List<byte> compressedData, List<byte> header) ApplyHuffman(List<byte> data)
+        {
+            if (data.Count == 0)
+                return (new List<byte>(), new List<byte> { 0 });
+
+            var frequency = data.GroupBy(b => b).ToDictionary(g => g.Key, g => g.Count());
+            var encoder = new HuffmanEncoder(frequency);
+            var codes = encoder.GetCanonicalCodes();
+            List<byte> header = encoder.GetHeader();
+
+            StringBuilder encodedBits = new();
+            foreach (var b in data)
+                encodedBits.Append(codes[b]);
+
+            int paddingRequired = CalculatePadding(encodedBits.Length);
+            encodedBits.Append('0', paddingRequired);
+
+            List<byte> compressedData = ConvertToByteList(encodedBits);
+            header.Add((byte)paddingRequired);
+
+            return (compressedData, header);
+        }
+
+        private static int CalculatePadding(int bitLength)
+        {
+            return (8 - (bitLength % 8)) % 8;
+        }
+
+        private static List<byte> ConvertToByteList(StringBuilder bitString)
+        {
+            var compressedData = new List<byte>();
+            for (int i = 0; i < bitString.Length; i += 8)
+            {
+                compressedData.Add(Convert.ToByte(bitString.ToString(i, 8), 2));
+            }
+            return compressedData;
         }
     }
 }
