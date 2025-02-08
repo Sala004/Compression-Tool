@@ -140,9 +140,6 @@ class LZSSCompressor
                 AddBits(bitStream, input[currentIndex], 8);
                 currentIndex++;
             }
-
-           
-
         }
         #region //test bitStream
         //    Console.WriteLine("\nbitStream.Count : " + bitStream.Count);

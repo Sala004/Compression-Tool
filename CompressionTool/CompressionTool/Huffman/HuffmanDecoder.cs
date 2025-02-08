@@ -82,5 +82,36 @@ namespace DecompressionTool
 
             return decodedData.ToArray();
         }
+
+
+        public static List<byte> DecompressHuffman(List<byte> compressedData, List<byte> header)
+        {
+            if (compressedData.Count == 0)
+                return new List<byte>();
+
+            var decoder = new HuffmanDecoder();
+            int paddingRequired = header[^1];
+            header.RemoveAt(header.Count - 1);
+            decoder.BuildCanonicalCodesFromHeader(header);
+            List<byte> decompressedData = new List<byte>();
+            string currentCode = "";
+
+            for (int i = 0; i < compressedData.Count; i++)
+            {
+                byte byteValue = compressedData[i];
+                int bitsToRead = (i == compressedData.Count - 1) ? 8 - paddingRequired : 8;
+
+                for (int j = 7; j >= 8 - bitsToRead; j--)
+                {
+                    currentCode += ((byteValue >> j) & 1) == 1 ? '1' : '0';
+                    if (decoder.ReverseCodebook.TryGetValue(currentCode, out byte decodedByte))
+                    {
+                        decompressedData.Add(decodedByte);
+                        currentCode = "";
+                    }
+                }
+            }
+            return decompressedData;
+        }
     }
 }
