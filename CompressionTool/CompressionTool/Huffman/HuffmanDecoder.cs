@@ -57,9 +57,9 @@ namespace DecompressionTool
         }
 
         // Decode the encoded data using the canonical Huffman codes
-        public byte[] Decode(byte[] encodedData)
+        public List<byte> Decode(List<byte> encodedData)
         {
-            if (encodedData == null || encodedData.Length == 0) return Array.Empty<byte>();
+            if (encodedData == null || encodedData.Count == 0) return new List<byte>();
 
             var decodedData = new List<byte>();
             var bitString = new StringBuilder();
@@ -80,7 +80,7 @@ namespace DecompressionTool
                 }
             }
 
-            return decodedData.ToArray();
+            return decodedData; 
         }
 
 

@@ -8,7 +8,6 @@ class LZSSCompressor
     // Public property to store the character to byte mapping
     public Dictionary<char, byte> CharToByteMap { get; private set; }
 
-
     public List<byte> LZSSCompress(string inputText)
     {
         // Create the character mapping before converting the text to a byte stream
