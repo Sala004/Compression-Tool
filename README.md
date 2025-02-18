@@ -28,21 +28,21 @@ The diagram below illustrates how the hybrid compression algorithm works, combin
 
 ## ⚙️ Installation & Usage  
 Clone the repository and build the project:
-sh
+```sh
 git clone https://github.com/Salah-Tamer/Compression-Tool.git
 cd compression-tool
 dotnet build
-
+```
 
 ### Compress a file:  
-sh
+```sh
 dotnet run --compress input.txt output.ct
-
+```
 
 ### Decompress:  
-sh
+```sh
 dotnet run --decompress output.ct restored.txt
-
+```
 
 ## 🔬 Algorithms Used  
 ### 1️⃣ LZSS (Lempel-Ziv-Storer-Szymanski) Compression  
